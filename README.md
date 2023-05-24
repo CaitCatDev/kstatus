@@ -10,12 +10,12 @@ or e.g. using a plugin manager like packer
 ```lua
     use { "CaitCatDev/kstatus.git" }
 
-    --Later in plugin setup 
+    --Later in plugin setup
     require("kstatus").setup({})
 ```
 
 ## TODO: 
-- [] Currently user config is not supported 
-- [] add more style options 
+- [X] Currently user config is not supported
+- [] add more style options
 - [] scaling with window size?
-- [] clean up code especially LSP code 
+- [] clean up code especially LSP code

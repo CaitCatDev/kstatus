@@ -1,6 +1,6 @@
 local M = { }
 
-local def_config = {
+local config = {
 	use_symbols = true,
 	symbols = {
 		['c'] = '',
@@ -49,6 +49,9 @@ local function highlight(group, fg, bg)
 	vim.cmd("highlight " .. group .. " guifg=" .. fg .. " guibg=" .. bg)
 end
 
+local function merge_configs(user_config) 
+	config = vim.tbl_deep_extend("force", config, config, user_config)	
+end
 
 local function status_get_file_name() 
 	local output = vim.api.nvim_buf_get_name(0) 
@@ -62,10 +65,10 @@ end
 
 local function status_buf_file_symbol() 
 	local buf = vim.api.nvim_get_current_buf()
-	if def_config.use_symbols == true and 
+	if config.use_symbols == true and 
 		vim.bo[buf].filetype and 
-		def_config.symbols[string.lower(vim.bo[buf].filetype)] then 
-		return def_config.symbols[string.lower(vim.bo[buf].filetype)]
+		config.symbols[string.lower(vim.bo[buf].filetype)] then 
+		return config.symbols[string.lower(vim.bo[buf].filetype)]
   	end
 	 
   	return vim.bo[buf].filetype
@@ -101,14 +104,14 @@ end
 local function status_buf_is_readonly() 
 	local buf = vim.api.nvim_get_current_buf() 
 	if vim.bo[buf].readonly then
-		return "%#KstatusRO#" .. def_config.ro_symbol .. "%#KstatusLeft#"
+		return "%#KstatusRO#" .. config.ro_symbol .. "%#KstatusLeft#"
 	else 
-		return "%#KstatusRW#" .. def_config.rw_symbol .. "%#KstatusLeft#"
+		return "%#KstatusRW#" .. config.rw_symbol .. "%#KstatusLeft#"
 	end
 end
 
 local function status_buf_get_fileformat() 
-	if def_config.use_symbols then
+	if config.use_symbols then
 		if vim.bo.fileformat == "unix" then 
 			return ''
 		elseif vim.bo.fileformat == "mac" then
@@ -122,20 +125,22 @@ local function status_buf_get_fileformat()
 end
 
 function create_status_string() 
-	local statusline = "%#KstatusLeft#" .. status_get_file_name() .. "" .. status_buf_is_readonly() .. "%m %#KstatusLeftEnd#" ..  def_config.sep_left .. " " .. status_buf_get_fileformat() .. "%=" .. def_config.sep_right .. "%#KstatusMid# " .. status_buf_file_symbol() .. " Language Server: " .. status_get_current_buf_lsp() .. " %#KstatusMidEnd#" .. def_config.sep_left ..  "%=" .. def_config.sep_right .."%#KstatusRight# [%c,%l] %p%% "
+	local statusline = "%#KstatusLeft#" .. status_get_file_name() .. "" .. status_buf_is_readonly() .. "%m %#KstatusLeftEnd#" ..  config.sep_left .. " " .. status_buf_get_fileformat() .. "%=" .. config.sep_right .. "%#KstatusMid# " .. status_buf_file_symbol() .. " Language Server: " .. status_get_current_buf_lsp() .. " %#KstatusMidEnd#" .. config.sep_left ..  "%=" .. config.sep_right .."%#KstatusRight# [%c,%l] %p%% "
 
 	return statusline
 end
 
-local function status_setup() 
-	highlight("KstatusLeft", def_config.colors.left_seg_fg, def_config.colors.left_seg_bg)
-	highlight("KstatusRO", def_config.colors.ro_color, def_config.colors.left_seg_bg)
-	highlight("KstatusRW", def_config.colors.rw_color, def_config.colors.left_seg_bg)
-	highlight("KstatusLeftEnd", def_config.colors.left_seg_bg, "NONE")
-	highlight("KstatusMid", def_config.colors.mid_seg_fg, def_config.colors.left_seg_bg)
-	highlight("KstatusMidEnd", def_config.colors.mid_seg_bg, "NONE")
-	highlight("KstatusRight", def_config.colors.right_seg_fg, def_config.colors.left_seg_bg)
-	highlight("KstatusRightEnd", def_config.colors.right_seg_bg, "NONE")
+local function status_setup(user_config)
+	merge_configs(user_config)
+
+	highlight("KstatusLeft", config.colors.left_seg_fg, config.colors.left_seg_bg)
+	highlight("KstatusRO", config.colors.ro_color, config.colors.left_seg_bg)
+	highlight("KstatusRW", config.colors.rw_color, config.colors.left_seg_bg)
+	highlight("KstatusLeftEnd", config.colors.left_seg_bg, "NONE")
+	highlight("KstatusMid", config.colors.mid_seg_fg, config.colors.left_seg_bg)
+	highlight("KstatusMidEnd", config.colors.mid_seg_bg, "NONE")
+	highlight("KstatusRight", config.colors.right_seg_fg, config.colors.left_seg_bg)
+	highlight("KstatusRightEnd", config.colors.right_seg_bg, "NONE")
 	
 	vim.o.statusline = "%!luaeval('create_status_string()')"
 end
